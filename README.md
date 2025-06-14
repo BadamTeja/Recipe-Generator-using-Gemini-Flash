@@ -1,6 +1,3 @@
----
-
-````markdown
 # 🍽️ Recipe Generator Using Gemini + Streamlit
 
 This Streamlit web app takes a **food image** as input and uses **Gemini (Google Generative AI)** to:
