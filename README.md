@@ -95,11 +95,8 @@ streamlit run app.py
 
 ## 📬 Contact
 
-Created by [Your Name](https://github.com/YOUR_USERNAME) – feel free to reach out!
+Created by [Vamsi](https://github.com/YOUR_USERNAME) – feel free to reach out!
 
 ```
 
 ---
-
-Let me know if you want me to generate a `requirements.txt` or `.env` template too.
-```
