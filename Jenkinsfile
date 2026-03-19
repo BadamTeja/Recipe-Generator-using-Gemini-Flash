@@ -31,7 +31,6 @@ pipeline {
                 echo "Running Tests..."
                 sh '''
                 . venv/bin/activate
-                # Add real tests here later
                 echo "No tests available, skipping"
                 '''
             }
@@ -41,7 +40,7 @@ pipeline {
             steps {
                 echo "Creating Artifact..."
                 sh '''
-                tar -czf ${ARTIFACT_NAME} *
+                tar --exclude=venv --exclude=.git -czf ${ARTIFACT_NAME} .
                 '''
             }
         }
@@ -65,7 +64,7 @@ pipeline {
                 sh '''
                 docker stop ${CONTAINER_NAME} || true
                 docker rm ${CONTAINER_NAME} || true
-                docker run -d -p 8081:8080 --name ${CONTAINER_NAME} ${IMAGE_NAME}:latest
+                docker run -d -p 8080:8080 --name ${CONTAINER_NAME} ${IMAGE_NAME}:latest
                 '''
             }
         }
