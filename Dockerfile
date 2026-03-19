@@ -1,20 +1,20 @@
-# ultra-slim base
-FROM python:3.11-alpine
+FROM python:3.11-slim
 
-# set working dir
 WORKDIR /app
 
-# copy only requirements first (cache optimization)
+# install system dependencies (important for chromadb, numpy, etc.)
+RUN apt-get update && apt-get install -y \
+    build-essential \
+    gcc \
+    && rm -rf /var/lib/apt/lists/*
+
 COPY requirements.txt .
 
-# install dependencies
-RUN pip install --no-cache-dir -r requirements.txt
+RUN pip install --upgrade pip && \
+    pip install --no-cache-dir -r requirements.txt
 
-# copy app
 COPY . .
 
-# expose port
 EXPOSE 8080
 
-# run app (change if needed)
-CMD ["python", "app.py"]
+CMD ["streamlit", "run", "app2.py", "--server.port=8080", "--server.address=0.0.0.0"]
