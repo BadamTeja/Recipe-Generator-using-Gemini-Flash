@@ -4,68 +4,79 @@ pipeline {
     environment {
         IMAGE_NAME = "recipe-generator"
         CONTAINER_NAME = "recipe-app"
-        DOCKERHUB_CREDS = "docker-creds"   // optional
+        ARTIFACT_NAME = "app.tar.gz"
     }
 
     stages {
 
-        stage('Checkout Code') {
+        stage('Checkout') {
             steps {
-               checkout scmGit(
-    branches: [[name: '*/origin']],
-    userRemoteConfigs: [[
-        credentialsId: 'git-creds',
-        url: 'https://github.com/BadamTeja/Recipe-Generator-using-Gemini-Flash.git'
-    ]]
-)
+                checkout scm
+            }
+        }
+
+        stage('Install Dependencies') {
+            steps {
+                sh '''
+                python3 -m venv venv
+                . venv/bin/activate
+                pip install --upgrade pip
+                pip install -r requirements.txt
+                '''
+            }
+        }
+
+        stage('Test') {
+            steps {
+                echo "Running Tests..."
+                sh '''
+                . venv/bin/activate
+                # Add real tests here later
+                echo "No tests available, skipping"
+                '''
+            }
+        }
+
+        stage('Build Artifact') {
+            steps {
+                echo "Creating Artifact..."
+                sh '''
+                tar -czf ${ARTIFACT_NAME} *
+                '''
+            }
+        }
+
+        stage('Archive Artifact') {
+            steps {
+                archiveArtifacts artifacts: '${ARTIFACT_NAME}', fingerprint: true
             }
         }
 
         stage('Build Docker Image') {
             steps {
+                echo "Building Docker Image..."
                 sh "docker build -t ${IMAGE_NAME}:latest ."
             }
         }
 
-        stage('Stop Old Container') {
+        stage('Deploy Container') {
             steps {
-                sh """
+                echo "Deploying Container..."
+                sh '''
                 docker stop ${CONTAINER_NAME} || true
                 docker rm ${CONTAINER_NAME} || true
-                """
-            }
-        }
-
-        stage('Run Container') {
-            steps {
-                sh """
-                docker run -d -p 8001:8080 --name ${CONTAINER_NAME} ${IMAGE_NAME}:latest
-                """
-            }
-        }
-
-        // OPTIONAL: Push to DockerHub
-        stage('Push to DockerHub') {
-            when {
-                expression { return false } // change to true if needed
-            }
-            steps {
-                script {
-                    docker.withRegistry('', DOCKERHUB_CREDS) {
-                        def image = docker.build("${IMAGE_NAME}")
-                        image.push('latest')
-                    }
-                }
+                docker run -d -p 8081:8080 --name ${CONTAINER_NAME} ${IMAGE_NAME}:latest
+                '''
             }
         }
     }
 
     post {
         success {
-            echo "Deployment Successful 🚀"
+            echo "✅ Pipeline Success: Artifact + Image + Deployment Done"
         }
         failure {
-            echo "Deployment Failed ❌"
+            echo "❌ Pipeline Failed"
         }
     }
 }
