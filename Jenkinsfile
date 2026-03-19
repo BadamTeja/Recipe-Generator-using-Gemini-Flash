@@ -11,13 +11,13 @@ pipeline {
 
         stage('Checkout Code') {
             steps {
-                checkout scmGit(
-                    branches: [[name: '*/main']],
-                    userRemoteConfigs: [[
-                        credentialsId: 'git-creds',
-                        url: 'https://github.com/BadamTeja/Recipe-Generator-using-Gemini-Flash.git'
-                    ]]
-                )
+               checkout scmGit(
+    branches: [[name: '*/origin']],
+    userRemoteConfigs: [[
+        credentialsId: 'git-creds',
+        url: 'https://github.com/BadamTeja/Recipe-Generator-using-Gemini-Flash.git'
+    ]]
+)
             }
         }
 
