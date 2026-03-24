@@ -40,7 +40,7 @@ pipeline {
             steps {
                 echo "Creating Artifact..."
                 sh '''
-                tar --exclude=venv --exclude=.git -czf ${ARTIFACT_NAME} .
+                tar --exclude=venv --exclude=.git --warning=no-file-changed -czf ${ARTIFACT_NAME} .
                 '''
             }
         }
