@@ -3,8 +3,9 @@ pipeline {
 
     environment {
         IMAGE_NAME = "recipe-generator"
-        CONTAINER_NAME = "recipe-app"
+        DOCKERHUB_USERNAME = "your_dockerhub_username"
         ARTIFACT_NAME = "app.tar.gz"
+        IMAGE_TAG = "${BUILD_NUMBER}"
     }
 
     stages {
@@ -51,20 +52,34 @@ pipeline {
             }
         }
 
-        stage('Build Docker Image') {
+        stage('Docker Login') {
             steps {
-                echo "Building Docker Image..."
-                sh "docker build -t ${IMAGE_NAME}:latest ."
+                withCredentials([usernamePassword(
+                    credentialsId: 'docker-creds',
+                    usernameVariable: 'DOCKER_USER',
+                    passwordVariable: 'DOCKER_PASS'
+                )]) {
+                    sh 'echo $DOCKER_PASS | docker login -u $DOCKER_USER --password-stdin'
+                }
             }
         }
 
-        stage('Deploy Container') {
+        stage('Build Docker Image') {
             steps {
-                echo "Deploying Container..."
+                echo "Building Docker Image..."
                 sh '''
-                docker stop ${CONTAINER_NAME} || true
-                docker rm ${CONTAINER_NAME} || true
-                docker run -d -p 8083:8080 --name ${CONTAINER_NAME} ${IMAGE_NAME}:latest
+                docker build -t ${DOCKERHUB_USERNAME}/${IMAGE_NAME}:${IMAGE_TAG} .
+                docker tag ${DOCKERHUB_USERNAME}/${IMAGE_NAME}:${IMAGE_TAG} ${DOCKERHUB_USERNAME}/${IMAGE_NAME}:latest
+                '''
+            }
+        }
+
+        stage('Push Docker Image') {
+            steps {
+                echo "Pushing Docker Images..."
+                sh '''
+                docker push ${DOCKERHUB_USERNAME}/${IMAGE_NAME}:${IMAGE_TAG}
+                docker push ${DOCKERHUB_USERNAME}/${IMAGE_NAME}:latest
                 '''
             }
         }
@@ -72,7 +87,7 @@ pipeline {
 
     post {
         success {
-            echo "✅ Pipeline Success: Artifact + Image + Deployment Done"
+            echo "✅ Docker Image Built & Pushed Successfully"
         }
         failure {
             echo "❌ Pipeline Failed"
